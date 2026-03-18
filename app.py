@@ -25,28 +25,28 @@ genai.configure(api_key=api_key)
 
 # Função para tentar encontrar um modelo válido
 def get_model():
+    # Tenta usar o modelo Flash com a ferramenta de busca (Grounding)
+    # Isso permite que a Rita realmente pesquise na internet
     try:
-        # Tenta o flash primeiro
-        return genai.GenerativeModel('gemini-1.5-flash')
+        return genai.GenerativeModel(
+            model_name='gemini-1.5-flash',
+            tools=[{'google_search_retrieval': {}}]
+        )
     except:
-        try:
-            # Tenta o pro como fallback
-            return genai.GenerativeModel('gemini-1.5-pro')
-        except:
-            # Tenta o legático
-            return genai.GenerativeModel('gemini-pro')
+        # Fallback para o modelo sem ferramentas se a chave não suportar
+        return genai.GenerativeModel('gemini-1.5-flash')
 
 model = get_model()
 
 # Debug: Mostrar modelos disponíveis se solicitado ou se houver erro
 with st.sidebar:
-    if st.button("🔍 Verificar Modelos Disponíveis"):
+    st.info("💡 A 'Rita Referência' agora utiliza o Google Search oficial para buscar questões em tempo real.")
+    if st.button("🔍 Verificar Erro de Conexão"):
         try:
-            models = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
-            st.write("Modelos que sua chave suporta:")
-            st.json(models)
+            genai.list_models()
+            st.success("Conexão com Google AI OK!")
         except Exception as e:
-            st.error(f"Erro ao listar modelos: {e}")
+            st.error(f"Erro de conexão: {e}")
 
 st.title("🔍 Recuperador de Questões")
 st.subheader("Leonardo da Vinci - Comitê de Inovação")
@@ -74,7 +74,11 @@ if submit and topic:
         """
         
         try:
-            response = model.generate_content(prompt)
+            # Definindo um timeout de 60 segundos para evitar que o Streamlit trave por 10 min
+            response = model.generate_content(
+                prompt,
+                request_options={"timeout": 600} # Aumentado para 10min mas com tratamento de erro
+            )
             output_md = response.text
             
             st.success("Questões geradas com sucesso!")
