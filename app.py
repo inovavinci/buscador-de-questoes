@@ -41,8 +41,8 @@ with st.sidebar:
 
 # Inicialização do modelo selecionado
 def get_model(name, use_grounding):
-    # 'google_search' é o nome atualizado da ferramenta para Grounding
-    tools = [{'google_search': {}}] if use_grounding else None
+    # Usando o formato de string simples que é mais compatível com diferentes versões do SDK
+    tools = ["google_search"] if use_grounding else None
     return genai.GenerativeModel(model_name=f"models/{name}", tools=tools)
 
 model = get_model(selected_model_name, grounding)
