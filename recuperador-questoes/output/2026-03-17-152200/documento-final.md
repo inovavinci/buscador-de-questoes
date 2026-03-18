@@ -1,0 +1,132 @@
+# Banco de Questões: Sistema Nervoso - Impulsos Nervosos
+**Instituição:** Leonardo da Vinci
+**Assunto:** Condução e Transmissão do Impulso Nervoso
+**Quantidade:** 10 Questões
+**Data:** 17 de Março de 2026
+
+---
+
+## Questão 01 (FUVEST)
+Considere os seguintes eventos que ocorrem durante a propagação de um impulso nervoso:
+I. Neurotransmissores atingem os dendritos.
+II. Neurotransmissores são liberados pelas extremidades do axônio.
+III. O impulso propaga-se pelo axônio.
+IV. O impulso propaga-se pelos dendritos.
+V. O impulso chega ao corpo celular.
+
+Que alternativa apresenta a sequência temporal correta desses eventos?
+A) V - IV - I - III - II
+B) I - IV - V - III - II
+C) I - IV - III - II - V
+D) II - III - I - IV - V
+E) IV - I - V - III - II
+
+---
+
+## Questão 02 (Vunesp)
+A bomba de sódio e potássio é fundamental para a manutenção do potencial de repouso das membranas neuronais. Sobre esse processo, é correto afirmar que:
+A) O transporte de íons ocorre de forma passiva, a favor do gradiente de concentração.
+B) A bomba transporta 3 íons potássio para fora e 2 íons sódio para dentro.
+C) A energia (ATP) é necessária para mover os íons contra seus gradientes de concentração.
+D) Durante a despolarização, a bomba é a principal responsável pela entrada de sódio.
+E) A face interna da membrana torna-se positiva em relação à externa durante o repouso.
+
+---
+
+## Questão 03 (F. Pequeno Príncipe)
+A Síndrome de Guillain-Barré é uma doença autoimune desmielinizante. Caso seja desencadeada porque o vírus afeta a célula glial produtora da bainha de mielina no sistema nervoso periférico, a célula afetada seria:
+A) o astrócito protoplasmático.
+B) o astrócito fibroso.
+C) o neurônio.
+D) a célula de Schwann.
+E) a micróglia.
+
+---
+
+## Questão 04 (UOL/Vestibular)
+Em alguns neurônios, é possível observar a condução saltatória do impulso nervoso, podendo ter uma variação nos impulsos de 0,25 m/s até 100 m/s. Essas variações na velocidade estão relacionadas à presença de:
+A) bainha de mielina nos neurônios.
+B) axônios nos neurônios.
+C) dendritos no axônio.
+D) corpo celular nos neurônios.
+E) células da glia.
+
+---
+
+## Questão 05 (ENEM)
+A cocaína é um narcótico que atua nas sinapses dopamínicas. Sobre o mecanismo de ação da cocaína na sinapse, verifica-se que ela:
+A) impede a ligação entre a dopamina e os receptores pós-sinápticos.
+B) bloqueia o descarregamento de mais dopamina na fenda sináptica.
+C) cessa o desencadeamento do potencial de membrana pré-sináptico.
+D) cessa o desencadeamento do potencial de membrana pós-sináptico.
+E) bloqueia a via de retorno (recaptação) da dopamina para o neurônio pré-sináptico.
+
+---
+
+## Questão 06 (Citologia/Fisiologia)
+No processo de despolarização de um neurônio, ocorre a abertura de canais iônicos específicos que permitem um fluxo súpito de íons. Qual íon entra na célula para provocar a inversão de polaridade (despolarização)?
+A) Potássio (K+).
+B) Cloreto (Cl-).
+C) Sódio (Na+).
+D) Cálcio (Ca2+).
+E) Magnésio (Mg2+).
+
+---
+
+## Questão 07 (FUVEST)
+Ao pisar em um espinho, uma pessoa retira o pé instantaneamente antes mesmo de sentir a dor consciente. Esse fenômeno, conhecido como arco reflexo, envolve a participação de:
+A) Neurônios sensoriais, medula espinhal e neurônios motores.
+B) Apenas o cérebro e os nervos motores.
+C) Neurônios motores e cérebro, sem passar pela medula.
+D) Apenas receptores de dor na pele e músculos.
+E) Nervos cranianos e cerebelo.
+
+---
+
+## Questão 08 (UECE)
+Sobre a propagação do impulso nervoso no neurônio, é correto afirmar que o sentido preferencial da condução é:
+A) Do axônio para os dendritos.
+B) No sentido corpo celular -> dendrito.
+C) Dos dendritos para o axônio, passando pelo corpo celular.
+D) Bidirecional entre o axônio e o corpo celular.
+E) Inexistente em neurônios mielinizados.
+
+---
+
+## Questão 09 (Fisiologia Geral)
+Na fenda sináptica, a comunicação entre dois neurônios ocorre por meio de substâncias químicas denominadas:
+A) Hormônios.
+B) Neurotransmissores.
+C) Enzimas digestivas.
+D) Proteínas estruturais.
+E) Ácidos nucleicos.
+
+---
+
+## Questão 10 (FUVEST)
+A velocidade de propagação do impulso nervoso em um axônio depende de certas características estruturais. Comparando-se um axônio mielinizado com um não mielinizado de mesmo diâmetro, no mielinizado a velocidade é:
+A) Menor, pois a bainha de mielina atua como resistência.
+B) Igual, pois a velocidade depende apenas do diâmetro.
+C) Maior, devido à condução saltatória nos nódulos de Ranvier.
+D) Nula, pois a mielina bloqueia o fluxo de íons completamente.
+E) Constante apenas no corpo celular.
+
+---
+
+# Gabarito Oficial
+
+| Questão | Gabarito | Dificuldade | Assunto Principal |
+| :--- | :---: | :---: | :--- |
+| **01** | **B** | Difícil | Transmissão de Impulso |
+| **02** | **C** | Média | Bomba de Sódio e Potássio |
+| **03** | **D** | Difícil | Células da Glia / Mielina |
+| **04** | **A** | Fácil | Velocidade de Condução |
+| **05** | **E** | Difícil | Sinapse e Drogas (Cocaína) |
+| **06** | **C** | Fácil | Despolarização |
+| **07** | **A** | Média | Arco Reflexo |
+| **08** | **E** | Fácil | Direção do Impulso |
+| **09** | **B** | Fácil | Neurotransmissores |
+| **10** | **C** | Média | Condução Saltatória |
+
+---
+*Documento gerado pela Squad Recuperador de Questões - 17/03/2026*

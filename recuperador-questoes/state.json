@@ -1,0 +1,52 @@
+{
+    "squad": "recuperador-questoes",
+    "status": "running",
+    "step": {
+        "current": 3,
+        "total": 5,
+        "label": "Revisão e Classificação"
+    },
+    "agents": [
+        {
+            "id": "rita-referencia",
+            "name": "Rita Referência",
+            "icon": "🔍",
+            "status": "done",
+            "deliverTo": null,
+            "desk": {
+                "col": 1,
+                "row": 1
+            }
+        },
+        {
+            "id": "victor-veredito",
+            "name": "Victor Veredito",
+            "icon": "⚖️",
+            "status": "working",
+            "deliverTo": null,
+            "desk": {
+                "col": 2,
+                "row": 1
+            }
+        },
+        {
+            "id": "dante-documentos",
+            "name": "Dante Documentos",
+            "icon": "📄",
+            "status": "idle",
+            "deliverTo": null,
+            "desk": {
+                "col": 1,
+                "row": 2
+            }
+        }
+    ],
+    "handoff": {
+        "from": "rita-referencia",
+        "to": "victor-veredito",
+        "message": "Expandi a lista para 10 questões completas sobre impulsos nervosos.",
+        "completedAt": "2026-03-17T15:28:00Z"
+    },
+    "startedAt": "2026-03-17T15:22:00Z",
+    "updatedAt": "2026-03-17T15:28:00Z"
+}

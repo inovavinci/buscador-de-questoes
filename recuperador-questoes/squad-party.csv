@@ -1,0 +1,4 @@
+id,name,role,path
+rita-referencia,Rita Referência,Pesquisadora de Questões,./agents/rita-referencia.agent.md
+victor-veredito,Victor Veredito,Revisor e Analista,./agents/victor-veredito.agent.md
+dante-documentos,Dante Documentos,Especialista em Documentação,./agents/dante-documentos.agent.md

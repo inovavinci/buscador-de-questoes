@@ -1,0 +1,44 @@
+name: "Recuperador de Questões"
+code: "recuperador-questoes"
+description: "Squad de alta performance para mapear e recuperar questões de vestibulares com gabarito e classificação de dificuldade."
+performance_mode: "alta-performance"
+
+skills:
+  - web_search
+  - web_fetch
+
+data:
+  - pipeline/data/research-brief.md
+  - pipeline/data/domain-framework.md
+  - pipeline/data/quality-criteria.md
+  - pipeline/data/output-examples.md
+  - pipeline/data/anti-patterns.md
+
+pipeline:
+  steps:
+    - name: "Definição de Foco"
+      file: "pipeline/steps/step-01-foco.md"
+      type: "checkpoint"
+      outputFile: "pipeline/data/search-focus.md"
+
+    - name: "Busca e Recuperação"
+      agent: "rita-referencia"
+      inputFile: "pipeline/data/search-focus.md"
+      outputFile: "output/questoes-brutas.md"
+      execution: "subagent"
+
+    - name: "Revisão e Classificação"
+      agent: "victor-veredito"
+      inputFile: "output/questoes-brutas.md"
+      outputFile: "output/questoes-revisadas.md"
+      execution: "inline"
+
+    - name: "Aprovação do Docente"
+      file: "pipeline/steps/step-04-aprovacao.md"
+      type: "checkpoint"
+
+    - name: "Documentação Final"
+      agent: "dante-documentos"
+      inputFile: "output/questoes-revisadas.md"
+      outputFile: "output/documento-final.md"
+      execution: "inline"
