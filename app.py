@@ -74,11 +74,13 @@ if submit and topic:
         2. (Victor): Classifique a dificuldade e inclua o gabarito.
         3. (Dante): Formate como um documento escolar profissional para a escola Leonardo da Vinci.
         
-        REGRAS:
-        - Inclua Banca, Ano e Dificuldade.
-        - Gabarito ao final.
-        - Use Markdown.
-        - IMPORTANTE: Use quebras de linha duplas (linhas em branco extras) entre o enunciado, as alternativas e entre cada questão. Isso é essencial para que a conversão para PDF/Word fique legível.
+        REGRAS DE FORMATAÇÃO (CRÍTICO):
+        - Cada alternativa (a, b, c, d, e) DEVE estar em uma nova linha.
+        - Use DUAS quebras de linha (\n\n) entre o enunciado e as alternativas.
+        - Use DUAS quebras de linha (\n\n) entre cada uma das alternativas.
+        - Inclua Banca, Ano e Dificuldade no topo de cada questão.
+        - Gabarito organizado em uma tabela ao final do documento.
+        - Use Markdown puro.
         """
         
         try:
