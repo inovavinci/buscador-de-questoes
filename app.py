@@ -6,7 +6,6 @@ import os
 st.set_page_config(page_title="Recuperador de Questões - Leonardo da Vinci", page_icon="🔍")
 
 # Autenticação Gemini
-# Tenta pegar dos Secrets primeiro, se não, pede ao usuário na barra lateral
 api_key = st.secrets.get("GEMINI_API_KEY") or os.getenv("GEMINI_API_KEY")
 
 with st.sidebar:
@@ -19,11 +18,11 @@ with st.sidebar:
             st.warning("Por favor, insira sua API Key para continuar.")
             st.stop()
     else:
-        st.success("API Key carregada (Modo Administrador).")
+        st.success("API Key carregada.")
 
 genai.configure(api_key=api_key)
 
-# Lógica para listar modelos e permitir escolha se o padrão falhar
+# Lógica de Modelos
 available_models = []
 try:
     available_models = [m.name.replace('models/', '') for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
@@ -34,27 +33,22 @@ with st.sidebar:
     st.header("🤖 Modelo")
     idx = available_models.index("gemini-1.5-flash") if "gemini-1.5-flash" in available_models else 0
     selected_model_name = st.selectbox("Selecione o modelo:", options=available_models, index=idx)
-    grounding = st.checkbox("Habilitar Pesquisa Google (Grounding)", value=True)
+    grounding = st.checkbox("Habilitar Pesquisa Google (Grounding)", value=True, help="Tenta buscar questões reais na internet.")
 
-# Inicialização do modelo selecionado (Defesa em duas camadas)
+# Inicialização Robusta
 def get_model(name, use_grounding):
     if not use_grounding:
         return genai.GenerativeModel(model_name=f"models/{name}")
     
-    # Tenta o nome moderno do Grounding primeiro
-    try:
-        return genai.GenerativeModel(model_name=f"models/{name}", tools=[{'google_search': {}}])
-    except:
-        # Tenta o nome antigo se o SDK for anterior à mudança
-        try:
-            return genai.GenerativeModel(model_name=f"models/{name}", tools=[{'google_search_retrieval': {}}])
-        except Exception as e:
-            st.sidebar.warning(f"Erro ao ativar busca: {e}")
-            return genai.GenerativeModel(model_name=f"models/{name}")
+    # O SDK 0.8.3 usa 'google_search_retrieval', mas a API às vezes pede 'google_search'.
+    # Usamos o que o SDK conhece para evitar erros de inicialização.
+    return genai.GenerativeModel(
+        model_name=f"models/{name}", 
+        tools=[{'google_search_retrieval': {}}]
+    )
 
 model = get_model(selected_model_name, grounding)
 
-# Diagnóstico Técnico
 with st.sidebar:
     if st.button("🔍 Diagnóstico Técnico"):
         try:
@@ -74,7 +68,7 @@ with st.form("search_form"):
     submit = st.form_submit_button("Gerar Banco de Questões")
 
 if submit and topic:
-    with st.spinner(f"A Squad está pesquisando sobre {topic}..."):
+    with st.spinner(f"A Squad está trabalhando em '{topic}'..."):
         prompt = f"""
         Você é a Squad 'Recuperador de Questões'. Execute estas tarefas:
         1. (Rita): Busque {num_questions} questões de vestibular reais sobre {topic}.
@@ -94,28 +88,26 @@ if submit and topic:
         
         output_md = ""
         try:
-            # Tenta gerar com o modelo padrão
+            # Tenta gerar conforme configurado
             response = model.generate_content(prompt, request_options={"timeout": 600})
             output_md = response.text
         except Exception as e:
             err_msg = str(e)
-            # Se o erro for de nome de ferramenta (400) ou incompatibilidade, tentamos o fallback no ato
-            if "not supported" in err_msg and ("google_search" in err_msg or "google_search_retrieval" in err_msg):
+            # FALLBACK SEGURO: Se o Google rejeitar a ferramenta de busca (erro 400),
+            # tentamos gerar as questões sem a ferramenta para não deixar o usuário na mão.
+            if "google_search" in err_msg or "not supported" in err_msg:
+                st.warning("⚠️ O motor de busca do Google está em manutenção para sua conta. Gerando questões via memória interna...")
                 try:
-                    alt_tool = 'google_search' if 'google_search_retrieval' in err_msg else 'google_search_retrieval'
-                    st.info(f"Ajustando motor de busca...")
-                    alt_model = genai.GenerativeModel(model_name=f"models/{selected_model_name}", tools=[{alt_tool: {}}])
-                    response = alt_model.generate_content(prompt, request_options={"timeout": 600})
+                    model_no_tools = genai.GenerativeModel(model_name=f"models/{selected_model_name}")
+                    response = model_no_tools.generate_content(prompt, request_options={"timeout": 600})
                     output_md = response.text
                 except Exception as e2:
-                    st.error(f"Erro crítico: {e2}")
-                    st.stop()
+                    st.error(f"Erro ao gerar: {e2}")
             else:
-                st.error(f"Erro ao gerar conteúdo: {e}")
-                st.stop()
+                st.error(f"Erro técnico: {e}")
 
         if output_md:
-            st.success("Questões geradas com sucesso!")
+            st.success("Questões recuperadas!")
             st.markdown(output_md)
             st.download_button(
                 label="Baixar Arquivo (.md)",
