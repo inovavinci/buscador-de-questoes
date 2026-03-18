@@ -111,21 +111,12 @@ if submit and topic:
         """
         
         try:
-            # Definindo um timeout de 60 segundos para evitar que o Streamlit trave por 10 min
+            # Tenta gerar o conteúdo com o modelo atual
             response = model.generate_content(
                 prompt,
-                request_options={"timeout": 600} # Aumentado para 10min mas com tratamento de erro
+                request_options={"timeout": 600}
             )
             output_md = response.text
-            
-            st.success("Questões geradas com sucesso!")
-            st.markdown(output_md)
-            
-            # Botão de Download
-            st.download_button(
-                label="Baixar Arquivo (.md)",
-                data=output_md,
-                file_name=f"questoes_{topic.lower().replace(' ', '_')}.md",
                 mime="text/markdown"
             )
         except Exception as e:
