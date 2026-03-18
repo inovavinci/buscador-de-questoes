@@ -1,6 +1,8 @@
 import streamlit as st
 import google.generativeai as genai
 import os
+import requests
+import json
 
 # Configuração da Página
 st.set_page_config(page_title="Recuperador de Questões - Leonardo da Vinci", page_icon="🔍")
@@ -47,6 +49,32 @@ def get_model(name, use_grounding):
         tools=[{'google_search_retrieval': {}}]
     )
 
+# Função para chamada direta via REST API (Bypass de SDK para Grounding)
+def generate_with_rest_api(prompt, api_key, model_name):
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
+    
+    payload = {
+        "contents": [{
+            "parts": [{"text": prompt}]
+        }],
+        "tools": [{
+            "google_search": {} # Nome exigido pela API v1beta
+        }]
+    }
+    
+    headers = {"Content-Type": "application/json"}
+    
+    response = requests.post(url, headers=headers, json=payload, timeout=600)
+    
+    if response.status_code == 200:
+        result = response.json()
+        try:
+            return result['candidates'][0]['content']['parts'][0]['text']
+        except:
+            return "Erro ao processar resposta do Google."
+    else:
+        raise Exception(f"Erro na API ({response.status_code}): {response.text}")
+
 model = get_model(selected_model_name, grounding)
 
 with st.sidebar:
@@ -88,23 +116,16 @@ if submit and topic:
         
         output_md = ""
         try:
-            # Tenta gerar conforme configurado
-            response = model.generate_content(prompt, request_options={"timeout": 600})
-            output_md = response.text
-        except Exception as e:
-            err_msg = str(e)
-            # FALLBACK SEGURO: Se o Google rejeitar a ferramenta de busca (erro 400),
-            # tentamos gerar as questões sem a ferramenta para não deixar o usuário na mão.
-            if "google_search" in err_msg or "not supported" in err_msg:
-                st.warning("⚠️ O motor de busca do Google está em manutenção para sua conta. Gerando questões via memória interna...")
-                try:
-                    model_no_tools = genai.GenerativeModel(model_name=f"models/{selected_model_name}")
-                    response = model_no_tools.generate_content(prompt, request_options={"timeout": 600})
-                    output_md = response.text
-                except Exception as e2:
-                    st.error(f"Erro ao gerar: {e2}")
+            # Se a busca estiver habilitada, usamos a REST API pura para evitar erros de versão do SDK
+            if grounding:
+                output_md = generate_with_rest_api(prompt, api_key, f"models/{selected_model_name}")
             else:
-                st.error(f"Erro técnico: {e}")
+                # Se não, usamos o SDK normal
+                response = model.generate_content(prompt, request_options={"timeout": 600})
+                output_md = response.text
+        except Exception as e:
+            st.error(f"Erro técnico na geração: {e}")
+            st.stop()
 
         if output_md:
             st.success("Questões recuperadas!")
