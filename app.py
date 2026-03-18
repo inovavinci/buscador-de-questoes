@@ -22,8 +22,31 @@ with st.sidebar:
         st.success("API Key carregada via Secrets (Modo Administrador).")
 
 genai.configure(api_key=api_key)
-# Usando o nome completo do modelo para evitar erros de versão da API
-model = genai.GenerativeModel('models/gemini-1.5-flash')
+
+# Função para tentar encontrar um modelo válido
+def get_model():
+    try:
+        # Tenta o flash primeiro
+        return genai.GenerativeModel('gemini-1.5-flash')
+    except:
+        try:
+            # Tenta o pro como fallback
+            return genai.GenerativeModel('gemini-1.5-pro')
+        except:
+            # Tenta o legático
+            return genai.GenerativeModel('gemini-pro')
+
+model = get_model()
+
+# Debug: Mostrar modelos disponíveis se solicitado ou se houver erro
+with st.sidebar:
+    if st.button("🔍 Verificar Modelos Disponíveis"):
+        try:
+            models = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
+            st.write("Modelos que sua chave suporta:")
+            st.json(models)
+        except Exception as e:
+            st.error(f"Erro ao listar modelos: {e}")
 
 st.title("🔍 Recuperador de Questões")
 st.subheader("Leonardo da Vinci - Comitê de Inovação")
