@@ -19,7 +19,7 @@ with st.sidebar:
             st.warning("Por favor, insira sua API Key para continuar.")
             st.stop()
     else:
-        st.success("API Key carregada via Secrets (Modo Administrador).")
+        st.success("API Key carregada (Modo Administrador).")
 
 genai.configure(api_key=api_key)
 
@@ -32,68 +32,49 @@ except:
 
 with st.sidebar:
     st.header("🤖 Modelo")
-    selected_model_name = st.selectbox(
-        "Selecione o modelo:",
-        options=available_models,
-        index=available_models.index("gemini-1.5-flash") if "gemini-1.5-flash" in available_models else 0
-    )
+    idx = available_models.index("gemini-1.5-flash") if "gemini-1.5-flash" in available_models else 0
+    selected_model_name = st.selectbox("Selecione o modelo:", options=available_models, index=idx)
     grounding = st.checkbox("Habilitar Pesquisa Google (Grounding)", value=True)
 
-# Inicialização do modelo selecionado
+# Inicialização do modelo selecionado (Defesa em duas camadas)
 def get_model(name, use_grounding):
     if not use_grounding:
         return genai.GenerativeModel(model_name=f"models/{name}")
     
-    # Brute-force para descobrir qual nome a biblioteca e a API aceitam
+    # Tenta o nome moderno do Grounding primeiro
     try:
-        # Tenta o nome novo (exigido pelas APIs atuais do Google)
         return genai.GenerativeModel(model_name=f"models/{name}", tools=[{'google_search': {}}])
-    except Exception as e:
+    except:
+        # Tenta o nome antigo se o SDK for anterior à mudança
         try:
-            # Tenta o nome antigo (compatível com SDKs mais velhos)
             return genai.GenerativeModel(model_name=f"models/{name}", tools=[{'google_search_retrieval': {}}])
-        except Exception as e2:
-            st.sidebar.warning(f"Grounding desabilitado (Erro: {e2})")
+        except Exception as e:
+            st.sidebar.warning(f"Erro ao ativar busca: {e}")
             return genai.GenerativeModel(model_name=f"models/{name}")
 
 model = get_model(selected_model_name, grounding)
 
-# Debug: Mostrar modelos/ferramentas disponíveis
+# Diagnóstico Técnico
 with st.sidebar:
-    st.info("💡 A 'Rita Referência' usa Google Search.")
     if st.button("🔍 Diagnóstico Técnico"):
         try:
             import google.generativeai.types as types
-            st.write("Configurações da sua biblioteca:")
-            st.write(f"Versão: {genai.__version__}")
-            st.write("Campos suportados em 'Tool':")
-            # Lista os campos do objeto Tool para vermos se é google_search ou google_search_retrieval
+            st.write(f"Versão SDK: {genai.__version__}")
             st.json([f for f in dir(types.Tool) if not f.startswith('_')])
         except Exception as e:
-            st.error(f"Erro no diagnóstico: {e}")
-
-# Debug: Mostrar modelos disponíveis se solicitado ou se houver erro
-with st.sidebar:
-    st.info("💡 A 'Rita Referência' agora utiliza o Google Search oficial para buscar questões em tempo real.")
-    if st.button("🔍 Verificar Erro de Conexão"):
-        try:
-            genai.list_models()
-            st.success("Conexão com Google AI OK!")
-        except Exception as e:
-            st.error(f"Erro de conexão: {e}")
+            st.error(f"Erro: {e}")
 
 st.title("🔍 Recuperador de Questões")
 st.subheader("Leonardo da Vinci - Comitê de Inovação")
 
 # Entrada do Usuário
 with st.form("search_form"):
-    topic = st.text_input("Qual o assunto das questões?", placeholder="Ex: Fotossíntese, Revolução Industrial...")
+    topic = st.text_input("Qual o assunto das questões?", placeholder="Ex: Fotossíntese, Guerra Fria...")
     num_questions = st.slider("Quantidade de questões", 3, 15, 5)
     submit = st.form_submit_button("Gerar Banco de Questões")
 
 if submit and topic:
-    with st.spinner(f"Rita Referência está pesquisando sobre {topic}..."):
-        # Simulação simplificada do fluxo multi-agente via prompt estruturado
+    with st.spinner(f"A Squad está pesquisando sobre {topic}..."):
         prompt = f"""
         Você é a Squad 'Recuperador de Questões'. Execute estas tarefas:
         1. (Rita): Busque {num_questions} questões de vestibular reais sobre {topic}.
@@ -101,49 +82,46 @@ if submit and topic:
         3. (Dante): Formate como um documento escolar profissional para a escola Leonardo da Vinci.
         
         REGRAS DE INTEGRIDADE (CRÍTICO):
-        - Você NÃO PODE inventar questões. Elas devem ser REAIS de vestibulares passados.
-        - Para CADA questão, você DEVE fornecer o nome da Banca, o Ano e, se possível, um Link de Referência ou Fonte para verificação.
+        - Você NÃO PODE inventar questões. Elas devem ser REAIS.
+        - Para CADA questão, forneça Banca, Ano e, se possível, um Link de Fonte.
         - O enunciado deve ser fiel ao original.
         
         REGRAS DE FORMATAÇÃO:
-        - Cada alternativa (a, b, c, d, e) em uma nova linha com duas quebras de linha (\n\n) entre elas.
-        - Gabarito organizado em uma tabela ao final.
+        - Cada alternativa (a, b, c, d, e) em uma nova linha.
+        - Use DUAS quebras de linha (\n\n) entre enunciado e alternativas, e entre cada alternativa.
+        - Gabarito em tabela ao final.
         """
         
+        output_md = ""
         try:
-            # Tenta gerar o conteúdo com o modelo atual
-            response = model.generate_content(
-                prompt,
-                request_options={"timeout": 600}
-            )
+            # Tenta gerar com o modelo padrão
+            response = model.generate_content(prompt, request_options={"timeout": 600})
             output_md = response.text
         except Exception as e:
-            # Se o erro for de nome de ferramenta (400), tenta o nome alternativo na hora
             err_msg = str(e)
+            # Se o erro for de nome de ferramenta (400) ou incompatibilidade, tentamos o fallback no ato
             if "not supported" in err_msg and ("google_search" in err_msg or "google_search_retrieval" in err_msg):
                 try:
-                    alt_name = 'google_search' if 'google_search_retrieval' in err_msg else 'google_search_retrieval'
-                    st.info(f"Ajustando motor de busca para '{alt_name}'...")
-                    model_alt = genai.GenerativeModel(model_name=model.model_name, tools=[{alt_name: {}}])
-                    response = model_alt.generate_content(prompt, request_options={"timeout": 600})
+                    alt_tool = 'google_search' if 'google_search_retrieval' in err_msg else 'google_search_retrieval'
+                    st.info(f"Ajustando motor de busca...")
+                    alt_model = genai.GenerativeModel(model_name=f"models/{selected_model_name}", tools=[{alt_tool: {}}])
+                    response = alt_model.generate_content(prompt, request_options={"timeout": 600})
                     output_md = response.text
                 except Exception as e2:
-                    st.error(f"Erro ao gerar conteúdo: {e2}")
+                    st.error(f"Erro crítico: {e2}")
                     st.stop()
             else:
                 st.error(f"Erro ao gerar conteúdo: {e}")
                 st.stop()
 
-        st.success("Questões geradas com sucesso!")
-        st.markdown(output_md)
-        
-        # Botão de Download
-        st.download_button(
-            label="Baixar Arquivo (.md)",
-            data=output_md,
-            file_name=f"questoes_{topic.lower().replace(' ', '_')}.md",
-            mime="text/markdown"
-        )
-            st.error(f"Erro ao gerar conteúdo: {e}")
+        if output_md:
+            st.success("Questões geradas com sucesso!")
+            st.markdown(output_md)
+            st.download_button(
+                label="Baixar Arquivo (.md)",
+                data=output_md,
+                file_name=f"questoes_{topic.lower().replace(' ', '_')}.md",
+                mime="text/markdown"
+            )
 
-st.info("Dica: Cole o conteúdo baixado no Google Docs para formatar e imprimir.")
+st.info("Dica: Cole o conteúdo no Google Docs para formatar e imprimir.")
