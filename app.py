@@ -23,20 +23,28 @@ with st.sidebar:
 
 genai.configure(api_key=api_key)
 
-# Função para tentar encontrar um modelo válido
-def get_model():
-    # Tenta usar o modelo Flash com a ferramenta de busca (Grounding)
-    # Isso permite que a Rita realmente pesquise na internet
-    try:
-        return genai.GenerativeModel(
-            model_name='gemini-1.5-flash',
-            tools=[{'google_search_retrieval': {}}]
-        )
-    except:
-        # Fallback para o modelo sem ferramentas se a chave não suportar
-        return genai.GenerativeModel('gemini-1.5-flash')
+# Lógica para listar modelos e permitir escolha se o padrão falhar
+available_models = []
+try:
+    available_models = [m.name.replace('models/', '') for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
+except:
+    available_models = ["gemini-1.5-flash", "gemini-1.5-pro", "gemini-pro"]
 
-model = get_model()
+with st.sidebar:
+    st.header("🤖 Modelo")
+    selected_model_name = st.selectbox(
+        "Selecione o modelo:",
+        options=available_models,
+        index=available_models.index("gemini-1.5-flash") if "gemini-1.5-flash" in available_models else 0
+    )
+    grounding = st.checkbox("Habilitar Pesquisa Google (Grounding)", value=True)
+
+# Inicialização do modelo selecionado
+def get_model(name, use_grounding):
+    tools = [{'google_search_retrieval': {}}] if use_grounding else None
+    return genai.GenerativeModel(model_name=f"models/{name}", tools=tools)
+
+model = get_model(selected_model_name, grounding)
 
 # Debug: Mostrar modelos disponíveis se solicitado ou se houver erro
 with st.sidebar:
