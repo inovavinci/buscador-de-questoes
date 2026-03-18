@@ -41,11 +41,33 @@ with st.sidebar:
 
 # Inicialização do modelo selecionado
 def get_model(name, use_grounding):
-    # Usando o formato de string simples que é mais compatível com diferentes versões do SDK
-    tools = ["google_search"] if use_grounding else None
+    tools = None
+    if use_grounding:
+        # Tenta detectar qual campo o SDK suporta (mudou em versões recentes)
+        try:
+            # O formato padrão para SDKs recentes é 'google_search'
+            tools = [{'google_search': {}}]
+        except:
+            # Fallback para versões ligeiramente anteriores
+            tools = [{'google_search_retrieval': {}}]
+            
     return genai.GenerativeModel(model_name=f"models/{name}", tools=tools)
 
 model = get_model(selected_model_name, grounding)
+
+# Debug: Mostrar modelos/ferramentas disponíveis
+with st.sidebar:
+    st.info("💡 A 'Rita Referência' usa Google Search.")
+    if st.button("🔍 Diagnóstico Técnico"):
+        try:
+            import google.generativeai.types as types
+            st.write("Configurações da sua biblioteca:")
+            st.write(f"Versão: {genai.__version__}")
+            st.write("Campos suportados em 'Tool':")
+            # Lista os campos do objeto Tool para vermos se é google_search ou google_search_retrieval
+            st.json([f for f in dir(types.Tool) if not f.startswith('_')])
+        except Exception as e:
+            st.error(f"Erro no diagnóstico: {e}")
 
 # Debug: Mostrar modelos disponíveis se solicitado ou se houver erro
 with st.sidebar:
