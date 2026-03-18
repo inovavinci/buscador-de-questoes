@@ -41,16 +41,20 @@ with st.sidebar:
 
 # Inicialização do modelo selecionado
 def get_model(name, use_grounding):
-    tools = None
-    if use_grounding:
-        import google.generativeai.types as types
-        # Verifica dinamicamente qual nome a biblioteca suporta
-        if hasattr(types.Tool, 'google_search'):
-            tools = [{'google_search': {}}]
-        else:
-            tools = [{'google_search_retrieval': {}}]
-            
-    return genai.GenerativeModel(model_name=f"models/{name}", tools=tools)
+    if not use_grounding:
+        return genai.GenerativeModel(model_name=f"models/{name}")
+    
+    # Brute-force para descobrir qual nome a biblioteca e a API aceitam
+    try:
+        # Tenta o nome novo (exigido pelas APIs atuais do Google)
+        return genai.GenerativeModel(model_name=f"models/{name}", tools=[{'google_search': {}}])
+    except Exception as e:
+        try:
+            # Tenta o nome antigo (compatível com SDKs mais velhos)
+            return genai.GenerativeModel(model_name=f"models/{name}", tools=[{'google_search_retrieval': {}}])
+        except Exception as e2:
+            st.sidebar.warning(f"Grounding desabilitado (Erro: {e2})")
+            return genai.GenerativeModel(model_name=f"models/{name}")
 
 model = get_model(selected_model_name, grounding)
 
