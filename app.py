@@ -22,7 +22,8 @@ with st.sidebar:
         st.success("API Key carregada via Secrets (Modo Administrador).")
 
 genai.configure(api_key=api_key)
-model = genai.GenerativeModel('gemini-1.5-flash')
+# Usando o nome completo do modelo para evitar erros de versão da API
+model = genai.GenerativeModel('models/gemini-1.5-flash')
 
 st.title("🔍 Recuperador de Questões")
 st.subheader("Leonardo da Vinci - Comitê de Inovação")
