@@ -117,9 +117,33 @@ if submit and topic:
                 request_options={"timeout": 600}
             )
             output_md = response.text
-                mime="text/markdown"
-            )
         except Exception as e:
+            # Se o erro for de nome de ferramenta (400), tenta o nome alternativo na hora
+            err_msg = str(e)
+            if "not supported" in err_msg and ("google_search" in err_msg or "google_search_retrieval" in err_msg):
+                try:
+                    alt_name = 'google_search' if 'google_search_retrieval' in err_msg else 'google_search_retrieval'
+                    st.info(f"Ajustando motor de busca para '{alt_name}'...")
+                    model_alt = genai.GenerativeModel(model_name=model.model_name, tools=[{alt_name: {}}])
+                    response = model_alt.generate_content(prompt, request_options={"timeout": 600})
+                    output_md = response.text
+                except Exception as e2:
+                    st.error(f"Erro ao gerar conteúdo: {e2}")
+                    st.stop()
+            else:
+                st.error(f"Erro ao gerar conteúdo: {e}")
+                st.stop()
+
+        st.success("Questões geradas com sucesso!")
+        st.markdown(output_md)
+        
+        # Botão de Download
+        st.download_button(
+            label="Baixar Arquivo (.md)",
+            data=output_md,
+            file_name=f"questoes_{topic.lower().replace(' ', '_')}.md",
+            mime="text/markdown"
+        )
             st.error(f"Erro ao gerar conteúdo: {e}")
 
 st.info("Dica: Cole o conteúdo baixado no Google Docs para formatar e imprimir.")
