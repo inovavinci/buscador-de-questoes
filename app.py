@@ -74,13 +74,14 @@ if submit and topic:
         2. (Victor): Classifique a dificuldade e inclua o gabarito.
         3. (Dante): Formate como um documento escolar profissional para a escola Leonardo da Vinci.
         
-        REGRAS DE FORMATAÇÃO (CRÍTICO):
-        - Cada alternativa (a, b, c, d, e) DEVE estar em uma nova linha.
-        - Use DUAS quebras de linha (\n\n) entre o enunciado e as alternativas.
-        - Use DUAS quebras de linha (\n\n) entre cada uma das alternativas.
-        - Inclua Banca, Ano e Dificuldade no topo de cada questão.
-        - Gabarito organizado em uma tabela ao final do documento.
-        - Use Markdown puro.
+        REGRAS DE INTEGRIDADE (CRÍTICO):
+        - Você NÃO PODE inventar questões. Elas devem ser REAIS de vestibulares passados.
+        - Para CADA questão, você DEVE fornecer o nome da Banca, o Ano e, se possível, um Link de Referência ou Fonte para verificação.
+        - O enunciado deve ser fiel ao original.
+        
+        REGRAS DE FORMATAÇÃO:
+        - Cada alternativa (a, b, c, d, e) em uma nova linha com duas quebras de linha (\n\n) entre elas.
+        - Gabarito organizado em uma tabela ao final.
         """
         
         try:
