@@ -6,10 +6,20 @@ import os
 st.set_page_config(page_title="Recuperador de Questões - Leonardo da Vinci", page_icon="🔍")
 
 # Autenticação Gemini
+# Tenta pegar dos Secrets primeiro, se não, pede ao usuário na barra lateral
 api_key = st.secrets.get("GEMINI_API_KEY") or os.getenv("GEMINI_API_KEY")
-if not api_key:
-    st.error("Chave API do Gemini não configurada.")
-    st.stop()
+
+with st.sidebar:
+    st.header("⚙️ Configurações")
+    if not api_key:
+        api_key_input = st.text_input("Insira sua Gemini API Key:", type="password", help="Pegue sua chave em https://aistudio.google.com/app/apikey")
+        if api_key_input:
+            api_key = api_key_input
+        else:
+            st.warning("Por favor, insira sua API Key para continuar.")
+            st.stop()
+    else:
+        st.success("API Key carregada via Secrets (Modo Administrador).")
 
 genai.configure(api_key=api_key)
 model = genai.GenerativeModel('gemini-1.5-flash')
