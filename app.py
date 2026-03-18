@@ -43,12 +43,11 @@ with st.sidebar:
 def get_model(name, use_grounding):
     tools = None
     if use_grounding:
-        # Tenta detectar qual campo o SDK suporta (mudou em versões recentes)
-        try:
-            # O formato padrão para SDKs recentes é 'google_search'
+        import google.generativeai.types as types
+        # Verifica dinamicamente qual nome a biblioteca suporta
+        if hasattr(types.Tool, 'google_search'):
             tools = [{'google_search': {}}]
-        except:
-            # Fallback para versões ligeiramente anteriores
+        else:
             tools = [{'google_search_retrieval': {}}]
             
     return genai.GenerativeModel(model_name=f"models/{name}", tools=tools)
