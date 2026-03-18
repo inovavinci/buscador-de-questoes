@@ -51,7 +51,9 @@ def get_model(name, use_grounding):
 
 # Função para chamada direta via REST API (Bypass de SDK para Grounding)
 def generate_with_rest_api(prompt, api_key, model_name):
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
+    # Remove prefixo 'models/' se já existir para não duplicar na URL
+    model_id = model_name.split('/')[-1]
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_id}:generateContent?key={api_key}"
     
     payload = {
         "contents": [{
