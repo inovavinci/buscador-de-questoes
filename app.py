@@ -8,6 +8,7 @@ import json
 st.set_page_config(page_title="Recuperador de Questões - Leonardo da Vinci", page_icon="🔍")
 
 # Autenticação Gemini
+# Tenta pegar dos Secrets primeiro, se não, pede ao usuário na barra lateral
 api_key = st.secrets.get("GEMINI_API_KEY") or os.getenv("GEMINI_API_KEY")
 
 with st.sidebar:
@@ -20,7 +21,7 @@ with st.sidebar:
             st.warning("Por favor, insira sua API Key para continuar.")
             st.stop()
     else:
-        st.success("API Key carregada.")
+        st.success("API Key carregada via Secrets.")
 
 genai.configure(api_key=api_key)
 
@@ -37,48 +38,51 @@ with st.sidebar:
     selected_model_name = st.selectbox("Selecione o modelo:", options=available_models, index=idx)
     grounding = st.checkbox("Habilitar Pesquisa Google (Grounding)", value=True, help="Tenta buscar questões reais na internet.")
 
-# Inicialização Robusta
+# Inicialização Robusta (para o modo sem busca)
 def get_model(name, use_grounding):
     if not use_grounding:
         return genai.GenerativeModel(model_name=f"models/{name}")
-    
-    # O SDK 0.8.3 usa 'google_search_retrieval', mas a API às vezes pede 'google_search'.
-    # Usamos o que o SDK conhece para evitar erros de inicialização.
-    return genai.GenerativeModel(
-        model_name=f"models/{name}", 
-        tools=[{'google_search_retrieval': {}}]
-    )
+    # Nota: No modo Grounding, usamos a generate_with_rest_api abaixo
+    return genai.GenerativeModel(model_name=f"models/{name}")
 
 # Função para chamada direta via REST API (Bypass de SDK para Grounding)
 def generate_with_rest_api(prompt, api_key, model_name):
-    # Remove prefixo 'models/' se já existir para não duplicar na URL
     model_id = model_name.split('/')[-1]
     url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_id}:generateContent?key={api_key}"
     
-    payload = {
-        "contents": [{
-            "parts": [{"text": prompt}]
-        }],
-        "tools": [{
-            "google_search": {} # Nome exigido pela API v1beta
-        }]
-    }
+    # Tenta primeiro com o nome recomendado pelo Google atualmente
+    tools_options = [
+        {"google_search_retrieval": {"dynamic_retrieval_config": {"mode": "DYNAMIC", "dynamic_threshold": 0.1}}},
+        {"google_search": {}}
+    ]
     
-    headers = {"Content-Type": "application/json"}
-    
-    response = requests.post(url, headers=headers, json=payload, timeout=600)
-    
-    if response.status_code == 200:
-        result = response.json()
+    last_error = ""
+    for tool_config in tools_options:
         try:
-            return result['candidates'][0]['content']['parts'][0]['text']
-        except:
-            return "Erro ao processar resposta do Google."
-    else:
-        raise Exception(f"Erro na API ({response.status_code}): {response.text}")
+            payload = {
+                "contents": [{"parts": [{"text": prompt}]}],
+                "tools": [tool_config]
+            }
+            response = requests.post(url, json=payload, timeout=600)
+            if response.status_code == 200:
+                result = response.json()
+                if 'candidates' in result and result['candidates']:
+                    candidate = result['candidates'][0]
+                    if 'content' in candidate and 'parts' in candidate['content']:
+                        return candidate['content']['parts'][0]['text']
+                    elif 'finishReason' in candidate:
+                        return f"O Google bloqueou a resposta por segurança (Motivo: {candidate['finishReason']}). Tente outro assunto."
+                return "O Google não encontrou resultados para esta pesquisa."
+            else:
+                last_error = f"Erro {response.status_code}: {response.text}"
+        except Exception as e:
+            last_error = str(e)
+            
+    raise Exception(f"Falha na Pesquisa Google: {last_error}")
 
 model = get_model(selected_model_name, grounding)
 
+# Diagnóstico Técnico
 with st.sidebar:
     if st.button("🔍 Diagnóstico Técnico"):
         try:
@@ -93,45 +97,46 @@ st.subheader("Leonardo da Vinci - Comitê de Inovação")
 
 # Entrada do Usuário
 with st.form("search_form"):
-    topic = st.text_input("Qual o assunto das questões?", placeholder="Ex: Fotossíntese, Guerra Fria...")
+    topic = st.text_input("Qual o assunto das questões?", placeholder="Ex: Fotossíntese, Oriente Médio...")
     num_questions = st.slider("Quantidade de questões", 3, 15, 5)
     submit = st.form_submit_button("Gerar Banco de Questões")
 
 if submit and topic:
-    with st.spinner(f"A Squad está trabalhando em '{topic}'..."):
+    with st.spinner(f"A Squad está buscando questões OFICIAIS sobre {topic}..."):
         prompt = f"""
-        Você é a Squad 'Recuperador de Questões'. Execute estas tarefas:
-        1. (Rita): Busque {num_questions} questões de vestibular reais sobre {topic}.
-        2. (Victor): Classifique a dificuldade e inclua o gabarito.
-        3. (Dante): Formate como um documento escolar profissional para a escola Leonardo da Vinci.
+        Você é um buscador de elite de questões de vestibular. Sua missão é fornecer apenas questões REAIS e VERIFICÁVEIS.
         
-        REGRAS DE INTEGRIDADE (CRÍTICO):
-        - Você NÃO PODE inventar questões. Elas devem ser REAIS.
-        - Para CADA questão, forneça Banca, Ano e, se possível, um Link de Fonte.
-        - O enunciado deve ser fiel ao original.
+        ASSUNTO: {topic}
+        QUANTIDADE: {num_questions}
         
-        REGRAS DE FORMATAÇÃO:
-        - Cada alternativa (a, b, c, d, e) em uma nova linha.
+        INSTRUÇÕES:
+        1. Use o Google Search para encontrar questões de vestibulares reais.
+        2. COPIE o texto INTEGRAL da questão.
+        3. Identifique BANCA, ANO e forneça o LINK real da fonte.
+        
+        REGRAS DE OURO:
+        - PROIBIDO INVENTAR questões.
+        - PROIBIDO CRIAR links falsos. Se não tiver o link, cite apenas a fonte (ex: Brasil Escola).
         - Use DUAS quebras de linha (\n\n) entre enunciado e alternativas, e entre cada alternativa.
         - Gabarito em tabela ao final.
         """
         
         output_md = ""
         try:
-            # Se a busca estiver habilitada, usamos a REST API pura para evitar erros de versão do SDK
             if grounding:
-                output_md = generate_with_rest_api(prompt, api_key, f"models/{selected_model_name}")
+                output_md = generate_with_rest_api(prompt, api_key, selected_model_name)
             else:
-                # Se não, usamos o SDK normal
                 response = model.generate_content(prompt, request_options={"timeout": 600})
                 output_md = response.text
         except Exception as e:
-            st.error(f"Erro técnico na geração: {e}")
+            st.error(f"Erro na geração: {e}")
+            st.info("💡 Dica: Se o erro persistir, tente desativar o 'Habilitar Pesquisa Google' na barra lateral.")
             st.stop()
 
         if output_md:
             st.success("Questões recuperadas!")
             st.markdown(output_md)
+            
             st.download_button(
                 label="Baixar Arquivo (.md)",
                 data=output_md,
