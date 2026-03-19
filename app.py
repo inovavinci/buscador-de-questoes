@@ -56,12 +56,22 @@ def generate_with_rest_api(prompt, api_key, model_name):
         {"google_search": {}}
     ]
     
+    # Configurações de segurança para evitar bloqueios de "RECITATION" (Direitos Autorais) 
+    # em questões de vestibular que são textos públicos/oficiais.
+    safety_settings = [
+        {"category": "HATE_SPEECH", "threshold": "BLOCK_NONE"},
+        {"category": "HARASSMENT", "threshold": "BLOCK_NONE"},
+        {"category": "SEXUALLY_EXPLICIT", "threshold": "BLOCK_NONE"},
+        {"category": "DANGEROUS_CONTENT", "threshold": "BLOCK_NONE"}
+    ]
+    
     last_error = ""
     for tool_config in tools_options:
         try:
             payload = {
                 "contents": [{"parts": [{"text": prompt}]}],
-                "tools": [tool_config]
+                "tools": [tool_config],
+                "safetySettings": safety_settings
             }
             response = requests.post(url, json=payload, timeout=600)
             if response.status_code == 200:
@@ -71,7 +81,10 @@ def generate_with_rest_api(prompt, api_key, model_name):
                     if 'content' in candidate and 'parts' in candidate['content']:
                         return candidate['content']['parts'][0]['text']
                     elif 'finishReason' in candidate:
-                        return f"O Google bloqueou a resposta por segurança (Motivo: {candidate['finishReason']}). Tente outro assunto."
+                        reason = candidate['finishReason']
+                        if reason == "RECITATION":
+                            return "O Google bloqueou por 'RECITATION' (Direitos Autorais). Isso acontece quando ele encontra a questão exata mas o filtro de proteção é muito rigoroso. Tente um assunto mais específico ou desabilite o Grounding."
+                        return f"O Google bloqueou a resposta por segurança (Motivo: {reason}). Tente outro assunto."
                 return "O Google não encontrou resultados para esta pesquisa."
             else:
                 last_error = f"Erro {response.status_code}: {response.text}"
